@@ -4,12 +4,13 @@
 <script type="text/javascript" src="changegears.js"></script>
 <!--
     Changes:
+    // 2020-03-10: Removed Table input for gears, switched entirely to textbox (id=geartext), and a couple onload functions
     // 2020-02-23: Changed Leadscrew from a dropdown to a textbox, added seperate TPI/MM pitch dropdown - Jeff Pedlow
     // 2020-02-15: Forked / Moved JS to its own file / moved images into a subfolder - Jeff Pedlow
     // Previous: existed from https://lathenovice.wordpress.com/  / http://www.imagesalad.com/lathenovice/lathegears/lathegears.html no updates in 5+ years, GPLv3
 -->
 </head>
-<body onload="default_gears(); reset_gears_form(); check_browser();">
+<body onload="default_gears();">
 
 <h2>Screwcutting Gear Ratio Calculator</h2>
 <noscript>
@@ -17,40 +18,7 @@
 </noscript>
 <form name="mylathe">
 <table border="0" cellpadding="2" cellspacing="0">
-<tbody><tr>
-<td>My gears:</td>
-<td><input onchange="remove_results();" name="gear1" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear2" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear3" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear4" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear5" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear6" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear7" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear8" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear9" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear10" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear11" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear12" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear13" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear14" maxlength="3" size="3"></td>
-</tr>
-<tr>
-<td>&nbsp;</td>
-<td><input onchange="remove_results();" name="gear15" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear16" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear17" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear18" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear19" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear20" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear21" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear22" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear23" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear24" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear25" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear25" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear27" maxlength="3" size="3"></td>
-<td><input onchange="remove_results();" name="gear28" maxlength="3" size="3"></td>
-</tr>
+<tbody>
 <tr>
 <!-- Newer Freeform Gear Input -->
 <td>Gears:</td>

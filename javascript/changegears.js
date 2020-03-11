@@ -36,6 +36,9 @@
     // ways of doing pretty much everything in here.
     //
     // Changes:
+    // 2020-03-10: Updated default gears function (greatly simplified), removed default gears as it's filled by default in the HTML file
+    //              reflected in getElementById("geartext").value, updated get my gears function (simplified),
+    //              entirely removed function reset_gears_form(), and check_browser(). maybe one day I can get this to be sub500 lines.
     // 2020-03-06: Changed functions get_my_gears() and default_gears() so that it uses a split from the textbox from the html,
     //              Also default values are handled via the html, allowing eventual removal of original "my gears" 28 text boxes...
     // 2020-02-23: Changed Leadscrew from a dropdown to a textbox, added seperate TPI/MM pitch dropdown - Jeff Pedlow
@@ -55,10 +58,7 @@
     //
     
     // Here are some things you can tweak without diving into the code:
-    
-    // Default gear set. This is the standard change gear set supplied with a typical 
-    // imperial leadscrew 300mm (7x12) minilathe
-    var strDefaultGears="20,20,30,35,40,40,45,50,55,57,60,65,80,0";
+
     
     // ILX and ILY are the distances in mm in X and Y between the input shaft and the leadscrew 
     // shaft, equivalent to millimetres (ish). Used for on-screen representation of gear layout, 
@@ -107,22 +107,7 @@
 
     function get_my_gears()
     {
-        
         arrMyGears = document.getElementById("geartext").value.split(",");
-        //var i, x, j;
-    
-        //arrMyGears = [];
-        
-        //for (i=0, j=0; i<28; ++i)
-       // {
-         //   x = document.forms['mylathe'].elements[i].value;
-            
-          //  if (x > 0)
-           // {
-          //      arrMyGears[j] = parseInt(x);
-          //      j++;
-         //   }
-      //  }
     }
     
     function getPos(e)
@@ -188,99 +173,9 @@
       return [xi, yi]; 
     }
     
-    function check_browser()
-    {
-        var bwarn, i, presto = 0;
-        var bname, bversion;
-        var wstring;
-        var testarray = [];
-    
-        bwarn = document.getElementById("bwarnn");
-    
-        if(typeof(testarray.indexOf) != "function")
-        {
-            NOINDEXOF = true;
-        }
-    
-        if(typeof(testarray.sort) != "function")
-        {
-            NOSORT = true;
-        }
-    
-        if(typeof(bwarn.innerHTML) != "string")
-        {
-            NOINNERHTML = true;
-        }
-    
-        bname = navigator.appName;
-        bversion = parseFloat(navigator.appVersion);
-    
-        bstring = bname + " " + bversion;
-    
-        if(bname == "Opera") 
-        {
-            // Opera 11.52 reports appVersion 9.80. Opera 9.2 messes the table up.
-            if(bversion < 9.8)
-            {
-                TABLEPROBLEMS = true;
-                IMAGEPROBLEMS = true;
-            }
-            wstring = navigator.userAgent;
-            testarray = wstring.split("/");
-            for(i = 0; testarray[i] != null; i++) ; // deliberately empty
-    
-            if(i > 1)
-            {
-                if(testarray[i - 2] == "Version")
-                {
-                    bversion = parseFloat(testarray[i - 1]);
-                }
-            }
-    
-            BROWSER = "tableshrinker";
-        }
-    
-        if((TABLEPROBLEMS == true)||(IMAGEPROBLEMS == true)||(NOINNERHTML == true)||(NOINDEXOF == true))
-        {
-            document.getElementById("browserwarn").style.position = "static";
-            document.getElementById("browserwarn").style.visibility = "visible";
-    
-            bwarn.removeChild(bwarn.firstChild);
-            bwarn.appendChild(document.createTextNode(bstring));
-        }
-    }
-    
-    function reset_gears_form()
-    {
-        //for (i=0; i<28; ++i)
-        //{
-           // if((arrMyGears[i] == null)||(arrMyGears[i] == 0))
-           // {
-           //     document.forms['mylathe'].elements[i].value = "";
-           // }
-            //else
-           // {
-           //     document.forms['mylathe'].elements[i].value = arrMyGears[i]+"";
-           // }
-       // }
-    }
-    
     function default_gears()
     {
         arrMyGears = document.getElementById("geartext").value.split(",");
-        //var i, j;
-        //var arrStrGears = strDefaultGears.split(",");
-    
-        //arrMyGears = [];
-    
-        //for (i=0, j=0;(arrStrGears[i]!=null)&&(i<28); ++i)
-        //{
-          //  if (arrStrGears[i] > 0)
-          //  {
-           //     arrMyGears[j] = parseInt(arrStrGears[i]);
-          //      j++;
-          //  }
-       // }
     }
     
     function circle(x, y, z, s, file)
@@ -864,7 +759,6 @@
             document.getElementById("resultselector").onchange();
         }
         document.getElementById("grinding").style.visibility="hidden";
-        reset_gears_form();
         return false;
     }
     
