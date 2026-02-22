@@ -1,5 +1,5 @@
-    // lathegears.html - combined xhtml and Javascript to calculate gear trains for lathes. 
-    // version 1.2.3
+    // changegears.js - Javascript to calculate gear trains for lathes.
+    // version 1.3.0
     //
     // Copyright: (c) Carl Williams 2011
     //
@@ -36,6 +36,12 @@
     // ways of doing pretty much everything in here.
     //
     // Changes:
+    // 2026-02-21: Fixed implicit global variables in permutate_and_filter() and create_dropdown_entry().
+    //              Fixed validate() using .checked instead of .value on a <select> element.
+    //              Restored integer parsing in get_my_gears() (documented optimisation was missing).
+    //              Simplified default_gears() to call get_my_gears() instead of duplicating it.
+    //              Replaced deprecated string-based setTimeout() call with a function reference.
+    //              Added JSDoc comments to all functions. Updated file name in header.
     // 2020-03-10: Updated default gears function (greatly simplified), removed default gears as it's filled by default in the HTML file
     //              reflected in getElementById("geartext").value, updated get my gears function (simplified),
     //              entirely removed function reset_gears_form(), and check_browser(). maybe one day I can get this to be sub500 lines.
@@ -105,11 +111,24 @@
 
     // begin functions
 
+    /**
+     * Reads the comma-separated gear list from the input field and populates
+     * arrMyGears with integer tooth counts.  Storing integers (rather than the
+     * strings produced by split()) avoids repeated type-coercion inside the
+     * heavily-iterated search loops and measurably reduces execution time.
+     */
     function get_my_gears()
     {
-        arrMyGears = document.getElementById("geartext").value.split(",");
+        var raw = document.getElementById("geartext").value.split(",");
+        arrMyGears = raw.map(function(s) { return parseInt(s, 10); })
+                        .filter(function(n) { return !isNaN(n) && n > 0; });
     }
     
+    /**
+     * Returns the cumulative [left, top] page offset of a DOM element in pixels.
+     * @param {Element} e - The DOM element whose position is required.
+     * @returns {number[]} Two-element array [left, top].
+     */
     function getPos(e)
     {
         var t = 0, l = 0;
@@ -122,6 +141,11 @@
         return [l, t];
     }
     
+    /**
+     * Converts the target pitch value between TPI and mm when the unit dropdown
+     * changes.  Only converts while results are displayed so that a user can
+     * switch the displayed pitch unit without altering an unsearched input value.
+     */
     function update_tpi()
     {
         var tgp = document.getElementById("tgtpitch");
@@ -132,6 +156,19 @@
         }
     }
     
+    /**
+     * Calculates an intersection point of two circles.  Used to determine the
+     * position of the idler-gear centre for the on-screen diagram.
+     * Returns the leftmost intersection point, or [0, 0] when the circles do
+     * not intersect or are identical.
+     * @param {number} x0 - X coordinate of the first circle's centre.
+     * @param {number} y0 - Y coordinate of the first circle's centre.
+     * @param {number} r0 - Radius of the first circle.
+     * @param {number} x1 - X coordinate of the second circle's centre.
+     * @param {number} y1 - Y coordinate of the second circle's centre.
+     * @param {number} r1 - Radius of the second circle.
+     * @returns {number[]} [x, y] of the intersection point, or [0, 0].
+     */
     function intersection(x0, y0, r0, x1, y1, r1)
     {
       var a, dx, dy, d, h, r02, rx, ry, x2, y2, xi1, xi2, xi, yi;
@@ -173,11 +210,24 @@
       return [xi, yi]; 
     }
     
+    /**
+     * Initialises arrMyGears from the HTML input field on page load.
+     * Delegates to get_my_gears() so that the parsing logic is defined once.
+     */
     function default_gears()
     {
-        arrMyGears = document.getElementById("geartext").value.split(",");
+        get_my_gears();
     }
     
+    /**
+     * Generates an HTML img tag representing a circular gear in the diagram.
+     * @param {number} x    - X position relative to the gear picture origin.
+     * @param {number} y    - Y position relative to the gear picture origin.
+     * @param {number} z    - CSS z-index for stacking order.
+     * @param {number|string} s - Diameter of the circle in pixels.
+     * @param {string} file - Path to the image file.
+     * @returns {string} HTML img tag string.
+     */
     function circle(x, y, z, s, file)
     {
         var size, strRet = "";
@@ -189,6 +239,16 @@
         return strRet;
     }
     
+    /**
+     * Generates an HTML img tag representing a rectangular bar (shaft) in the
+     * side-view portion of the diagram.
+     * @param {number} x    - X position relative to the gear picture origin.
+     * @param {number} y    - Y position relative to the gear picture origin.
+     * @param {number} z    - CSS z-index for stacking order.
+     * @param {number|string} s - Height of the rectangle in pixels.
+     * @param {string} file - Path to the image file.
+     * @returns {string} HTML img tag string.
+     */
     function rectangle(x, y, z, s, file)
     {
         var size, strRet = "";
@@ -200,6 +260,15 @@
         return strRet;
     }
     
+    /**
+     * Builds the HTML for the gear-train diagram given four gear tooth counts.
+     * When c is 0, a three-gear train is drawn; otherwise a four-gear train.
+     * @param {number} a - Tooth count of the driver gear (A).
+     * @param {number} b - Tooth count of the first driven/idler gear (B).
+     * @param {number} c - Tooth count of the compound idler gear (C), or 0 for simple train.
+     * @param {number} d - Tooth count of the leadscrew gear (D).
+     * @returns {string} HTML string containing positioned img elements.
+     */
     function drawgears(a, b, c, d)
     {
         var strRet = "";
@@ -249,6 +318,12 @@
         return strRet;
     }
     
+    /**
+     * Calculates the on-screen position of the result picture element and
+     * delegates to drawgears() to produce the diagram HTML.
+     * @param {string[]} arrGears - Parsed gear result array (tpi, mm, A, B, C, D).
+     * @returns {string} HTML string for the gear diagram.
+     */
     function do_graphical_bit(arrGears)
     {
         var rpicPos = getPos(document.getElementById("rpic"));
@@ -265,6 +340,12 @@
     }
     
     // Note to self: tidy this up!
+    /**
+     * Displays detailed information for a selected gear combination.
+     * Updates the pitch cells, gear-label cells, error/warning text, and the
+     * graphical gear diagram in the result section of the page.
+     * @param {string} strGears - Comma-separated string: "tpi,mm,A,B,C,D".
+     */
     function show_gears(strGears)
     {
         var arrGears = strGears.split(",");
@@ -418,11 +499,20 @@
         document.getElementById("rpic").innerHTML=do_graphical_bit(arrGears);
     }
     
+    /**
+     * Creates an HTML option element string for the results dropdown.
+     * The option is displayed in bold when the result pitch matches the target
+     * exactly, and is pre-selected when it is the closest match.
+     * @param {string} strGears - Comma-separated string: "tpi,mm,A,B,C,D".
+     * @param {number} s        - Zero-based index of this result in arrResults.
+     * @returns {string} HTML option element string.
+     */
     function create_dropdown_entry(strGears, s)
     {
         var arrGears = strGears.split(",");
         var boldon=""; 
         var tp, pitch, diff, diffpc;
+        var strRet;
     
         pitch = parseFloat(arrGears[0]);
         diff = Math.abs(pitch - TGPITCH);
@@ -457,6 +547,15 @@
         return strRet;
     }
     
+    /**
+     * Calculates the thread pitch produced by a gear combination and returns
+     * it as a comma-separated string ready for storage in arrResults.
+     * @param {number} a - Driver gear tooth count.
+     * @param {number} b - First driven/idler gear tooth count.
+     * @param {number} c - Compound idler gear tooth count, or 0 for simple train.
+     * @param {number} d - Leadscrew gear tooth count.
+     * @returns {string} "tpi,mm,a,b,c,d" result string.
+     */
     function get_pitch(a, b, c, d)
     {
         var pitchtpi, pitchmm;
@@ -475,12 +574,20 @@
     
     // Following does not check minimum and maximum distances for centre spindle from A and D
     // spindles.
+    /**
+     * Validates whether a gear combination is geometrically plausible.
+     * Uses the ILX/ILY shaft-centre distances to check for overlapping or
+     * under-reaching gear trains.  The strictness of the check is controlled
+     * by the "validateopt" dropdown.
+     * @param {string} gears - Comma-separated gear string: "tpi,mm,A,B,C,D".
+     * @returns {boolean} true if the combination passes validation.
+     */
     function validate(gears)
     {
         var ag = gears.split(",");
         var strictervalid = true;
     
-        if(document.getElementById("validateopt").checked == "allowover"  )
+        if(document.getElementById("validateopt").value == "allowover"  )
         {
             strictervalid = false;
         }
@@ -534,6 +641,14 @@
         return true;
     }
     
+    /**
+     * Adds a gear combination to arrResults if it passes validation and is not
+     * already present.  Maintains a maximum of 100 results, replacing the
+     * worst match when the limit is reached and the new entry is closer to the
+     * target pitch.  Also tracks the indices of the best and worst matches.
+     * @param {string} gears - Comma-separated gear string: "tpi,mm,A,B,C,D".
+     * @param {number} diff  - Absolute difference between result TPI and target TPI.
+     */
     function add_result_line(gears, diff)
     {
         var j, arrTmp, tmp;
@@ -593,6 +708,13 @@
         }
     }
     
+    /**
+     * Selects the best idler gear for a simple (three-gear) train from the
+     * available gear set, preferring a tooth count close to 65.
+     * @param {number} i - Index of gear A in arrMyGears (excluded from selection).
+     * @param {number} j - Index of gear D in arrMyGears (excluded from selection).
+     * @returns {number} Tooth count of the chosen idler gear.
+     */
     function get_idler(i, j) // try to make idler gear 65 or near to it.
     {
         var idler = 65;
@@ -614,9 +736,15 @@
         return idler;
     }
     
+    /**
+     * Iterates through all permutations of arrMyGears and collects combinations
+     * whose pitch falls within a given percentage threshold of the target.
+     * Both simple (three-gear) and compound (four-gear) trains are considered.
+     * @param {number} t - Acceptable error threshold in percent TPI.
+     */
     function permutate_and_filter(t)
     {
-        var i = 0; j = 0; k = 0, m = 0;
+        var i = 0, j = 0, k = 0, m = 0;
         var idler = 0;
         var strLine = "";
         var arrLine = [];
@@ -633,7 +761,7 @@
     
         // threshold is given as %age, we compare with fraction though, i.e. 1% is 0.01
         // Also, this forces thresh to be a number in case t is a string
-        thresh = t/100;
+        var thresh = t/100;
     
         // instead of just skipping iterations for already used gears, this could cascade 
         // reduced gear sets or use some kind of cunning recursive structure, but this is
@@ -682,6 +810,10 @@
         }
     }
     
+    /**
+     * Sets the CSS visibility of all result rows simultaneously.
+     * @param {string} v - "visible" or "hidden".
+     */
     function result_visibility(v)
     { 
         document.getElementById("resultrow").style.visibility=v;
@@ -691,6 +823,10 @@
         document.getElementById("resultrow5").style.visibility=v;
     }
     
+    /**
+     * Hides all result rows and resets all global result-tracking variables.
+     * Called whenever the user changes an input field or starts a new search.
+     */
     function remove_results()
     {
         result_visibility("hidden");
@@ -707,6 +843,13 @@
         }
     }
     
+    /**
+     * Comparator for Array.sort() that orders gear result strings by how close
+     * their TPI value is to the global target TGPITCH.
+     * @param {string} a - First gear result string.
+     * @param {string} b - Second gear result string.
+     * @returns {number} Negative, zero, or positive for sort ordering.
+     */
     function sortbydiff(a, b)
     {
         var da = Math.abs(parseFloat(a) - TGPITCH);
@@ -714,6 +857,13 @@
         return da - db;
     }
     
+    /**
+     * Core search routine, called asynchronously by grind_my_gears() so that
+     * the browser can render the "grinding gears..." indicator first.
+     * Widens the search threshold until at least two results are found (up to
+     * a 5% error), sorts the results, and populates the results dropdown.
+     * @returns {boolean} Always returns false (prevents form submission).
+     */
     function grind_core()
     {
         var strResultOptions = "";
@@ -762,6 +912,13 @@
         return false;
     }
     
+    /**
+     * Entry point for a gear search, triggered by the "Search for combinations"
+     * button.  Resets previous results, reads the current gear set, shows the
+     * "grinding gears..." indicator, then schedules grind_core() asynchronously
+     * so the indicator is visible before the search begins.
+     * @returns {boolean} Always returns false (prevents form submission).
+     */
     function grind_my_gears()
     {
         remove_results();
@@ -770,7 +927,7 @@
         if( parseFloat(document.getElementById("tgtpitch").value) > 0)
         {
             document.getElementById("grinding").style.visibility="visible";
-            setTimeout("grind_core()", 0);
+            setTimeout(grind_core, 0);
         }
         return false;
     }
