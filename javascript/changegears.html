@@ -1,6 +1,10 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Change Gear Calculator</title>
+<link rel="stylesheet" href="changegears.css">
 <script type="text/javascript" src="changegears.js"></script>
 <!--
     Changes:
@@ -10,22 +14,32 @@
     // Previous: existed from https://lathenovice.wordpress.com/  / http://www.imagesalad.com/lathenovice/lathegears/lathegears.html no updates in 5+ years, GPLv3
 -->
 </head>
-<body onload="default_gears();">
+<body onload="initialize_form();">
+<main class="page">
+<header class="hero">
+<p class="eyebrow">Lathe threading helper</p>
+<h1>Screwcutting Gear Ratio Calculator</h1>
+<p class="intro">Find the closest screwcutting gear trains for your available gears, then review the pitch error and layout diagram before heading to the lathe.</p>
+</header>
 
-<h2>Screwcutting Gear Ratio Calculator</h2>
 <noscript>
-<h1 align="center">I'm afraid you need Javascript for this one.</h1>
+<p class="noscript-warning">I'm afraid you need Javascript for this one.</p>
 </noscript>
+
+<section class="panel">
 <form name="mylathe">
-<table border="0" cellpadding="2" cellspacing="0">
+<table border="0" cellpadding="2" cellspacing="0" class="form-table">
 <tbody>
 <tr>
-<!-- Newer Freeform Gear Input -->
-<td>Gears:</td>
-<td colspan="6"><input onchange="remove_results();" id="geartext" name="geartext" maxlength="45" size="45" value="20,20,30,35,40,40,45,50,55,57,60,65,80"></td>
+<td><label for="geartext">Gears</label></td>
+<td colspan="6"><input onchange="save_settings(); remove_results();" id="geartext" name="geartext" maxlength="45" size="45" value="20,20,30,35,40,40,45,50,55,57,60,65,80" inputmode="numeric" aria-describedby="gearhelp"></td>
+</tr>
+<tr class="help-row">
+<td>&nbsp;</td>
+<td colspan="20"><div class="help-text" id="gearhelp">Enter comma-separated tooth counts. Your latest settings are saved automatically in this browser.</div></td>
 </tr>
 <tr>
-<td>Leadscrew:</td>
+<td><label for="leadscrew">Leadscrew</label></td>
 <!--
 ORIGINAL LEADSCREW DROPDOWN -- DONT REMOVE UNTIL V2.0
 <td colspan="3">
@@ -49,22 +63,20 @@ ORIGINAL LEADSCREW DROPDOWN -- DONT REMOVE UNTIL V2.0
 </select>
 </td>
 -->
-<!-- Newer Freeform Leadscrew Input, intent is once number is entered, tpi or MM is selected beside it and it autocalculates-->
-<td colspan="3"><input onchange="remove_results();" id="leadscrew" name="leadscrew" maxlength="15" size="15" value="10"></td>
-<!-- leadscrewtpimm dropdown, not functional yet-->
-<td colspan="5"><select id="leadscrewtpimm" name="leadscrewtpimm" onchange="update_tpi()">
+<td colspan="3"><input onchange="save_settings(); remove_results();" id="leadscrew" name="leadscrew" maxlength="15" size="15" value="10" inputmode="decimal"></td>
+<td colspan="5"><select id="leadscrewtpimm" name="leadscrewtpimm" onchange="update_unit_value('leadscrew', 'leadscrewtpimm')">
 <option value="tpi">tpi</option>
 <option value="mm">mm</option></select>
 </td>
 </tr>
 <tr>
-<td>Target:</td>
-<td colspan="3"><input onchange="remove_results();" id="tgtpitch" name="tpitch" maxlength="15" size="15" value="20" style="background-image: url(&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABHklEQVQ4EaVTO26DQBD1ohQWaS2lg9JybZ+AK7hNwx2oIoVf4UPQ0Lj1FdKktevIpel8AKNUkDcWMxpgSaIEaTVv3sx7uztiTdu2s/98DywOw3Dued4Who/M2aIx5lZV1aEsy0+qiwHELyi+Ytl0PQ69SxAxkWIA4RMRTdNsKE59juMcuZd6xIAFeZ6fGCdJ8kY4y7KAuTRNGd7jyEBXsdOPE3a0QGPsniOnnYMO67LgSQN9T41F2QGrQRRFCwyzoIF2qyBuKKbcOgPXdVeY9rMWgNsjf9ccYesJhk3f5dYT1HX9gR0LLQR30TnjkUEcx2uIuS4RnI+aj6sJR0AM8AaumPaM/rRehyWhXqbFAA9kh3/8/NvHxAYGAsZ/il8IalkCLBfNVAAAAABJRU5ErkJggg==&quot;); background-repeat: no-repeat; background-attachment: scroll; background-size: 16px 18px; background-position: 98% 50%;"></td>
-<td colspan="5"><select id="tpimm" name="tpimm" onchange="update_tpi()">
+<td><label for="tgtpitch">Target</label></td>
+<td colspan="3"><input onchange="save_settings(); remove_results();" id="tgtpitch" name="tpitch" maxlength="15" size="15" value="20" inputmode="decimal"></td>
+<td colspan="5"><select id="tpimm" name="tpimm" onchange="update_unit_value('tgtpitch', 'tpimm')">
 <option value="tpi">tpi</option>
 <option value="mm">mm</option></select>
 </td>
-<td colspan="6" align="right"><select id="validateopt" name="albert" onchange="remove_results();">
+<td colspan="6" align="right"><select id="validateopt" name="albert" onchange="save_settings(); remove_results();">
 <option value="validate">Eliminate most bad combinations</option>
 <option value="allowover">Eliminate many bad combinations</option>
 <option value="novalidate">Allow combinations which won't fit</option>
@@ -73,33 +85,35 @@ ORIGINAL LEADSCREW DROPDOWN -- DONT REMOVE UNTIL V2.0
 </tr>
 <tr>
 <td colspan="21" align="center">
-<br>
+<div class="action-row">
 <input type="button" name="updategears" id="gobutton" value="Search for combinations" onclick="grind_my_gears()">
+<input type="button" name="resetdefaults" id="resetbutton" value="Reset defaults" onclick="reset_defaults()">
+</div>
 </td>
 </tr>
 <tr id="grinding" style="visibility:hidden">
-<td colspan="15" align="center"><span style="color:red">grinding gears...</span></td>
+<td colspan="15" align="center"><span class="grinding-text">grinding gears...</span></td>
 </tr>
 <tr id="resultrow" style="visibility:hidden">
-<td style="border:1px; border-color:#A0A0C0; border-style:solid;" bgcolor="#A0A0C0">Results:</td>
+<td style="border:1px; border-color:#A0A0C0; border-style:solid;" bgcolor="#A0A0C0">Results <span class="result-count">(<span id="resultcount">0</span>)</span>:</td>
 <td colspan="14" style="border:1px; border-color:#A0A0C0; border-style:solid;" bgcolor="#A0A0C0">
 <select id="resultselector" name="resultsel" onchange="show_gears(this.value);"><option value="" selected="selected">---</option></select></td>
 </tr>
 <tr id="resultrow2" style="visibility:hidden">
 <td style="border:1px; border-color:#A0A0C0; border-style:solid; border-right-style:none;" bgcolor="#A0A0C0">&nbsp;</td>
 <td style="border:1px; border-color:#FFFFFF; border-style:solid; border-right-style:none;" bgcolor="#C0C0A0" colspan="10" align="center"><strong>Pitch</strong></td>
-<td style="border:1px; border-color:#FFFFFF; border-style:solid; border-right-style:none;" bgcolor="#C0C0A0" align="center"><strong>A</strong></td> 
-<td style="border:1px; border-color:#FFFFFF; border-style:solid; border-right-style:none;" bgcolor="#C0C0A0" align="center"><strong>B</strong></td> 
-<td style="border:1px; border-color:#FFFFFF; border-style:solid; border-right-style:none;" bgcolor="#C0C0A0" align="center"><strong>C</strong></td> 
+<td style="border:1px; border-color:#FFFFFF; border-style:solid; border-right-style:none;" bgcolor="#C0C0A0" align="center"><strong>A</strong></td>
+<td style="border:1px; border-color:#FFFFFF; border-style:solid; border-right-style:none;" bgcolor="#C0C0A0" align="center"><strong>B</strong></td>
+<td style="border:1px; border-color:#FFFFFF; border-style:solid; border-right-style:none;" bgcolor="#C0C0A0" align="center"><strong>C</strong></td>
 <td style="border:1px; border-color:#FFFFFF; border-style:solid; border-right-style:none;" bgcolor="#C0C0A0" align="center"><strong>D</strong></td>
 </tr>
 <tr id="resultrow3" style="visibility:hidden">
 <td style="border:1px; border-color:#A0A0C0; border-style:solid; border-right-style:none; border-top-style:none;" bgcolor="#A0A0C0" align="center">&nbsp;</td>
 <td style="border:1px; border-color:#FFFFFF; border-style:solid; border-right-style:none; border-top-style:none;" bgcolor="#C0C0A0" id="rpitchtpi" colspan="5" align="left">0 tpi +/- 0</td>
 <td style="border:1px; border-color:#FFFFFF; border-style:solid; border-right-style:none; border-top-style:none;" bgcolor="#C0C0A0" id="rpitchmm" colspan="5" align="left">0 mm +/- 0</td>
-<td style="border:1px; border-color:#FFFFFF; border-style:solid; border-right-style:none; border-top-style:none;" bgcolor="#C0C0A0" id="rg1" align="center">0</td> 
-<td style="border:1px; border-color:#FFFFFF; border-style:solid; border-right-style:none; border-top-style:none;" bgcolor="#C0C0A0" id="rg2" align="center">0</td> 
-<td style="border:1px; border-color:#FFFFFF; border-style:solid; border-right-style:none; border-top-style:none;" bgcolor="#C0C0A0" id="rg3" align="center">0</td> 
+<td style="border:1px; border-color:#FFFFFF; border-style:solid; border-right-style:none; border-top-style:none;" bgcolor="#C0C0A0" id="rg1" align="center">0</td>
+<td style="border:1px; border-color:#FFFFFF; border-style:solid; border-right-style:none; border-top-style:none;" bgcolor="#C0C0A0" id="rg2" align="center">0</td>
+<td style="border:1px; border-color:#FFFFFF; border-style:solid; border-right-style:none; border-top-style:none;" bgcolor="#C0C0A0" id="rg3" align="center">0</td>
 <td style="border:1px; border-color:#FFFFFF; border-style:solid; border-right-style:none; border-top-style:none;" bgcolor="#C0C0A0" id="rg4" align="center">0</td>
 </tr>
 <tr id="resultrow5" style="visibility:hidden">
@@ -112,6 +126,7 @@ ORIGINAL LEADSCREW DROPDOWN -- DONT REMOVE UNTIL V2.0
 </tr>
 </tbody></table>
 </form>
-<br>
-<br>
-</body></html>
+</section>
+</main>
+</body>
+</html>

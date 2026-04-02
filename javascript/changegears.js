@@ -93,6 +93,15 @@
     var BROWSER = "";
     
     var ILD = Math.sqrt((ILX * ILX) + (ILY * ILY));
+    var SETTINGS_KEY = "lathegears-settings";
+    var DEFAULT_SETTINGS = {
+        geartext: "20,20,30,35,40,40,45,50,55,57,60,65,80",
+        leadscrew: "10",
+        leadscrewtpimm: "tpi",
+        tgtpitch: "20",
+        tpimm: "tpi",
+        validateopt: "validate"
+    };
     
     // overridden later
     var GEAR_PIC_X = 320; 
@@ -142,18 +151,168 @@
     }
     
     /**
+     * Converts a numeric pitch value between TPI and mm.
+     * @param {string|number} value - Current text-box value.
+     * @param {string} fromUnit - "tpi" or "mm".
+     * @param {string} toUnit - "tpi" or "mm".
+     * @returns {string} Converted value rounded for display, or original value.
+     */
+    function convert_pitch_value(value, fromUnit, toUnit)
+    {
+        var numeric = parseFloat(value);
+        if ((fromUnit == toUnit) || !(numeric > 0))
+        {
+            return value;
+        }
+        return "" + (Math.round((25.4 / numeric) * 1000000) / 1000000);
+    }
+
+    /**
+     * Reads an input field and returns its value as TPI regardless of UI units.
+     * @param {string} inputId - Text input element ID.
+     * @param {string} unitId - Unit select element ID.
+     * @returns {number} Pitch in TPI, or 0 for invalid/empty values.
+     */
+    function get_pitch_value_as_tpi(inputId, unitId)
+    {
+        var value = parseFloat(document.getElementById(inputId).value);
+        if (!(value > 0))
+        {
+            return 0;
+        }
+        if (document.getElementById(unitId).value == "mm")
+        {
+            return 25.4 / value;
+        }
+        return value;
+    }
+
+    /**
+     * Persists the current form settings in browser storage when available.
+     */
+    function save_settings()
+    {
+        var settings;
+        try
+        {
+            if(!window.localStorage)
+            {
+                return;
+            }
+            settings = {
+                geartext: document.getElementById("geartext").value,
+                leadscrew: document.getElementById("leadscrew").value,
+                leadscrewtpimm: document.getElementById("leadscrewtpimm").value,
+                tgtpitch: document.getElementById("tgtpitch").value,
+                tpimm: document.getElementById("tpimm").value,
+                validateopt: document.getElementById("validateopt").value
+            };
+            window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        }
+        catch(err)
+        {
+        }
+    }
+
+    /**
+     * Applies a settings object to the form controls.
+     * @param {Object} settings - Stored or default settings.
+     */
+    function apply_settings(settings)
+    {
+        document.getElementById("geartext").value = settings.geartext || DEFAULT_SETTINGS.geartext;
+        document.getElementById("leadscrew").value = settings.leadscrew || DEFAULT_SETTINGS.leadscrew;
+        document.getElementById("leadscrewtpimm").value = settings.leadscrewtpimm || DEFAULT_SETTINGS.leadscrewtpimm;
+        document.getElementById("tgtpitch").value = settings.tgtpitch || DEFAULT_SETTINGS.tgtpitch;
+        document.getElementById("tpimm").value = settings.tpimm || DEFAULT_SETTINGS.tpimm;
+        document.getElementById("validateopt").value = settings.validateopt || DEFAULT_SETTINGS.validateopt;
+    }
+
+    /**
+     * Restores persisted settings, falling back to the built-in defaults.
+     */
+    function restore_settings()
+    {
+        var settings = DEFAULT_SETTINGS;
+        var stored;
+        try
+        {
+            if(window.localStorage)
+            {
+                stored = window.localStorage.getItem(SETTINGS_KEY);
+                if(stored)
+                {
+                    settings = JSON.parse(stored);
+                }
+            }
+        }
+        catch(err)
+        {
+            settings = DEFAULT_SETTINGS;
+        }
+        apply_settings(settings);
+    }
+
+    /**
+     * Updates a pitch textbox when its unit selector changes.
+     * @param {string} inputId - Text input element ID.
+     * @param {string} unitId - Unit select element ID.
+     */
+    function update_unit_value(inputId, unitId)
+    {
+        var input = document.getElementById(inputId);
+        var select = document.getElementById(unitId);
+        var fromUnit = select.getAttribute("data-last-unit");
+        if((fromUnit == null) || (fromUnit === ""))
+        {
+            fromUnit = select.value;
+        }
+        input.value = convert_pitch_value(input.value, fromUnit, select.value);
+        select.setAttribute("data-last-unit", select.value);
+        save_settings();
+        remove_results();
+    }
+
+    /**
+     * Resets the form to the built-in defaults.
+     */
+    function reset_defaults()
+    {
+        apply_settings(DEFAULT_SETTINGS);
+        document.getElementById("tpimm").setAttribute("data-last-unit", document.getElementById("tpimm").value);
+        document.getElementById("leadscrewtpimm").setAttribute("data-last-unit", document.getElementById("leadscrewtpimm").value);
+        remove_results();
+        get_my_gears();
+        save_settings();
+    }
+
+    /**
+     * Initialises saved state and default gear parsing on page load.
+     */
+    function initialize_form()
+    {
+        restore_settings();
+        document.getElementById("tpimm").setAttribute("data-last-unit", document.getElementById("tpimm").value);
+        document.getElementById("leadscrewtpimm").setAttribute("data-last-unit", document.getElementById("leadscrewtpimm").value);
+        get_my_gears();
+        save_settings();
+    }
+
+    /**
+     * Updates the visible result count badge.
+     */
+    function update_result_count()
+    {
+        document.getElementById("resultcount").innerHTML = numresults;
+    }
+
+    /**
      * Converts the target pitch value between TPI and mm when the unit dropdown
-     * changes.  Only converts while results are displayed so that a user can
-     * switch the displayed pitch unit without altering an unsearched input value.
+     * changes.
      */
     function update_tpi()
     {
-        var tgp = document.getElementById("tgtpitch");
-        var ttpi = tgp.value;
-        if(numresults > 0)
-        {
-            tgp.value = 25.4/ttpi;
-        }
+        update_unit_value("tgtpitch", "tpimm");
     }
     
     /**
@@ -360,17 +519,14 @@
         var strMetricUnit = "mm";
         var strImperialUnit = '"';
     
-        tp = document.getElementById("tgtpitch").value;
-    
-        if(document.getElementById("tpimm").value == "mm")
+        ttpi = get_pitch_value_as_tpi("tgtpitch", "tpimm");
+        if(ttpi > 0)
         {
-            ttpi = 25.4 / tp;
-            tmm = tp;
+            tmm = 25.4 / ttpi;
         }
         else
         {
-            tmm = 25.4 / tp;
-            ttpi = tp;
+            tmm = 0;
         }
     
         tpi = parseFloat(arrGears[0]);
@@ -559,14 +715,15 @@
     function get_pitch(a, b, c, d)
     {
         var pitchtpi, pitchmm;
+        var leadscrewtpi = get_pitch_value_as_tpi("leadscrew", "leadscrewtpimm");
     
         if (c > 0)
         {
-            pitchtpi = document.getElementById("leadscrew").value * (b / a) * (d / c);
+            pitchtpi = leadscrewtpi * (b / a) * (d / c);
         }
         else
         {
-            pitchtpi = document.getElementById("leadscrew").value * (d / a);
+            pitchtpi = leadscrewtpi * (d / a);
         }
         pitchmm = 25.4 / pitchtpi;
         return "" + pitchtpi + "," + pitchmm + "," + a + "," + b + "," + c + "," + d;
@@ -841,6 +998,7 @@
         {
             arrResults.indexOf = function(str) { var i; for(i = 0; this[i] != null; i++) { if(this[i] == str) return i; } return -1; }; 
         }
+        update_result_count();
     }
     
     /**
@@ -872,15 +1030,7 @@
         var thresh=0.2; // percent tpi
     
         // clean this up - nasty use of a global TGPITCH to simplify sorting etc.
-        tp = document.getElementById("tgtpitch").value;
-    
-        if(document.getElementById("tpimm").value == "mm")
-        {
-            if(tp > 0)
-            {
-                tp = 25.4 / tp;
-            }
-        }
+        tp = get_pitch_value_as_tpi("tgtpitch", "tpimm");
         TGPITCH = tp;
     
         while((numresults < 2) && (thresh < 5))
@@ -908,6 +1058,7 @@
             
             document.getElementById("resultselector").onchange();
         }
+        update_result_count();
         document.getElementById("grinding").style.visibility="hidden";
         return false;
     }
@@ -923,6 +1074,7 @@
     {
         remove_results();
         get_my_gears();
+        save_settings();
     
         if( parseFloat(document.getElementById("tgtpitch").value) > 0)
         {

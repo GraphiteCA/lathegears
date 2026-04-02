@@ -15,6 +15,13 @@ Open `javascript/changegears.html` in a modern web browser (no server required).
 3. **Target** – Enter the thread pitch you want to cut and select TPI or mm.
 4. **Validation** – Choose how strictly impossible gear combinations are filtered out.
 5. Click **Search for combinations**.  The dropdown lists every valid gear train found, sorted by accuracy.  Selecting an entry shows the exact pitch produced, the error, and a diagram of the gear layout.
+6. Your most recent settings are stored in the browser automatically, and **Reset defaults** restores the original sample configuration.
+
+## Recent improvements
+
+- Responsive styling with a modern light/dark theme.
+- Working unit conversion for both target and leadscrew inputs.
+- Automatic saving of the last-used gear set and pitch selections in the browser.
 
 ## Configuration
 
