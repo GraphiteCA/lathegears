@@ -32,7 +32,7 @@
 <tbody>
 <tr>
 <td><label for="geartext">Gears</label></td>
-<td colspan="6"><input onchange="save_settings(); remove_results();" id="geartext" name="geartext" maxlength="45" size="45" value="20,20,30,35,40,40,45,50,55,57,60,65,80" inputmode="numeric" aria-describedby="gearhelp"></td>
+<td colspan="6"><input onchange="save_settings(); remove_results();" id="geartext" name="geartext" maxlength="45" size="45" value="20,20,30,35,40,40,45,50,55,57,60,65,80" aria-label="Available gears" aria-describedby="gearhelp"></td>
 </tr>
 <tr class="help-row">
 <td>&nbsp;</td>
@@ -63,7 +63,7 @@ ORIGINAL LEADSCREW DROPDOWN -- DONT REMOVE UNTIL V2.0
 </select>
 </td>
 -->
-<td colspan="3"><input onchange="save_settings(); remove_results();" id="leadscrew" name="leadscrew" maxlength="15" size="15" value="10" inputmode="decimal"></td>
+<td colspan="3"><input onchange="save_settings(); remove_results();" id="leadscrew" name="leadscrew" maxlength="15" size="15" value="10" inputmode="decimal" aria-label="Leadscrew pitch"></td>
 <td colspan="5"><select id="leadscrewtpimm" name="leadscrewtpimm" onchange="update_unit_value('leadscrew', 'leadscrewtpimm')">
 <option value="tpi">tpi</option>
 <option value="mm">mm</option></select>
@@ -71,7 +71,7 @@ ORIGINAL LEADSCREW DROPDOWN -- DONT REMOVE UNTIL V2.0
 </tr>
 <tr>
 <td><label for="tgtpitch">Target</label></td>
-<td colspan="3"><input onchange="save_settings(); remove_results();" id="tgtpitch" name="tpitch" maxlength="15" size="15" value="20" inputmode="decimal"></td>
+<td colspan="3"><input onchange="save_settings(); remove_results();" id="tgtpitch" name="tpitch" maxlength="15" size="15" value="20" inputmode="decimal" aria-label="Target pitch"></td>
 <td colspan="5"><select id="tpimm" name="tpimm" onchange="update_unit_value('tgtpitch', 'tpimm')">
 <option value="tpi">tpi</option>
 <option value="mm">mm</option></select>
@@ -95,7 +95,7 @@ ORIGINAL LEADSCREW DROPDOWN -- DONT REMOVE UNTIL V2.0
 <td colspan="15" align="center"><span class="grinding-text">grinding gears...</span></td>
 </tr>
 <tr id="resultrow" style="visibility:hidden">
-<td style="border:1px; border-color:#A0A0C0; border-style:solid;" bgcolor="#A0A0C0">Results <span class="result-count">(<span id="resultcount">0</span>)</span>:</td>
+<td style="border:1px; border-color:#A0A0C0; border-style:solid;" bgcolor="#A0A0C0">Results <span class="result-count">(<span id="resultcount" aria-label="number of results">0</span>)</span>:</td>
 <td colspan="14" style="border:1px; border-color:#A0A0C0; border-style:solid;" bgcolor="#A0A0C0">
 <select id="resultselector" name="resultsel" onchange="show_gears(this.value);"><option value="" selected="selected">---</option></select></td>
 </tr>

@@ -102,6 +102,7 @@
         tpimm: "tpi",
         validateopt: "validate"
     };
+    var PITCH_VALUE_PRECISION = 1000000;
     
     // overridden later
     var GEAR_PIC_X = 320; 
@@ -160,11 +161,11 @@
     function convert_pitch_value(value, fromUnit, toUnit)
     {
         var numeric = parseFloat(value);
-        if ((fromUnit == toUnit) || !(numeric > 0))
+        if ((fromUnit === toUnit) || !(numeric > 0))
         {
             return value;
         }
-        return "" + (Math.round((25.4 / numeric) * 1000000) / 1000000);
+        return "" + (Math.round((25.4 / numeric) * PITCH_VALUE_PRECISION) / PITCH_VALUE_PRECISION);
     }
 
     /**
@@ -180,7 +181,7 @@
         {
             return 0;
         }
-        if (document.getElementById(unitId).value == "mm")
+        if (document.getElementById(unitId).value === "mm")
         {
             return 25.4 / value;
         }
@@ -195,7 +196,7 @@
         var settings;
         try
         {
-            if(!window.localStorage)
+            if (!window.localStorage)
             {
                 return;
             }
@@ -237,7 +238,7 @@
         var stored;
         try
         {
-            if(window.localStorage)
+            if (window.localStorage)
             {
                 stored = window.localStorage.getItem(SETTINGS_KEY);
                 if(stored)
@@ -263,7 +264,7 @@
         var input = document.getElementById(inputId);
         var select = document.getElementById(unitId);
         var fromUnit = select.getAttribute("data-last-unit");
-        if((fromUnit == null) || (fromUnit === ""))
+        if((fromUnit === null) || (typeof(fromUnit) === "undefined") || (fromUnit === ""))
         {
             fromUnit = select.value;
         }
